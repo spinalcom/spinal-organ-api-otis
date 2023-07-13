@@ -37,3 +37,31 @@ CONTRACT_NUMBER=                            # The contract number for the otis a
 COUNTRY_CODE=                               # The country code for the otis api
 
 ```
+
+
+### Installation
+
+Clone this repository in the directory of your choice. Navigate to the cloned directory and install the dependencies using the following command:
+    
+```bash
+npm install
+```
+
+To build the module, run:
+
+```bash
+npm run build
+```
+
+### Usage
+
+Start the module with:
+
+```bash
+npm run start
+```
+
+Or using [pm2](https://pm2.keymetrics.io/docs/usage/quick-start/)
+```bash
+pm2 start node dist/index.js
+```
