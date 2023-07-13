@@ -1,0 +1,44 @@
+{
+  "name": "spinal-organ-api-otis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "types": "build/index.ts.d",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc -w & nodemon index.js",
+    "debug": "ts-node ./src/index.js",
+    "build": "tsc",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "axios-concurrency": "^1.0.1",
+    "axios-debug-log": "^0.8.2",
+    "axios-retry": "^3.1.9",
+    "dotenv": "^8.2.0",
+    "image-to-base64": "^2.2.0",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.33",
+    "spinal-core-connectorjs_type": "git+https://github.com/spinalcom/spinal-core-connectorjs_type.git",
+    "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git",
+    "spinal-env-viewer-plugin-documentation-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-documentation-service.git",
+    "spinal-env-viewer-plugin-group-manager-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-group-manager-service.git",
+    "spinal-service-ticket": "git+https://github.com/spinalcom/spinal-service-ticket.git",
+    "spinal-lib-organ-monitoring": "git+https://github.com/spinalcom/spinal-lib-organ-monitoring.git"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.12",
+    "doctoc": "^2.2.0",
+    "jsdoc-babel": "^0.5.0",
+    "jsdoc-to-markdown": "^7.0.1",
+    "ts-node": "^8.5.4",
+    "tslint": "^5.11.0",
+    "tslint-config-airbnb": "^5.11.1",
+    "typescript": "^4.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Free_Software_License_Agreement.pdf"
+}
