@@ -102,8 +102,8 @@ export class SyncRunPull {
   async pullAndUpdateTickets(): Promise<void> {
     const availabilityData = await getAvailabilityData();
     const maintenanceData = await getMaintenanceData();
-    //const repairData = await getRepairData();
-    //const customerCallBackData = await getCustomerCallBackData();
+    const repairData = await getRepairData();
+    const customerCallBackData = await getCustomerCallBackData();
     const context = await this.getContext();
     for (const ticket of availabilityData) {
         if (ticket.back_in_service_datetime == null) continue;
@@ -114,14 +114,14 @@ export class SyncRunPull {
       console.log('maintenance ticket :', ticket);
       await this.updateProcessTicket(ticket,context,process.env.MAINTENANCE_PROCESS_NAME)
     }
-    /*for (const ticket of repairData) {
+    for (const ticket of repairData) {
       console.log('repair ticket :', ticket);
       await this.updateProcessTicket(ticket,context,process.env.REPAIR_PROCESS_NAME)
     }
     for (const ticket of customerCallBackData) {
       console.log('customerCallBack ticket :', ticket);
-      await this.updateProcessTicket(ticket,context,process.env.CUSTOMER_CALL_BACK_PROCESS_NAME)
-    }*/
+      await this.updateProcessTicket(ticket,context,process.env.CUSTOMER_CALLBACK_PROCESS_NAME)
+    }
 
   }
 
@@ -155,10 +155,11 @@ export class SyncRunPull {
     const processes = await spinalServiceTicket.getAllProcess(
       context.info.id.get()
     );
+
     const correctProcess = processes.find(
       (proc) => proc.name.get() === processName
     );
-    if (!process) return console.error('Process not found');
+    if (!correctProcess) return console.error('Process not found');
     const step = await spinalServiceTicket.getFirstStep(
       correctProcess.id.get(),
       context.info.id.get()
