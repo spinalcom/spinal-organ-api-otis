@@ -200,6 +200,21 @@ export interface IRepairResponse {
   Message: string;
 }
 
+export interface IElevatorPerformance {
+  date : Date;
+  run_counts: string;
+  door_cycles: string;
+}
+export interface IPerformanceResponse{
+  unit_id: string;
+  country_code: string;
+  country_unit: string;
+  unit_name: string;
+  unit_type: string;
+  uptime_30days: number;
+  performance : IElevatorPerformance[];
+}
+
 
 
 
@@ -251,3 +266,20 @@ export async function getCustomerCallBackData(
     .then((res) => res.data);
 
 }
+
+export async function getPerformanceData( 
+  elevatorId : string,
+  startDate : string,
+  endDate : string
+  ): Promise<IPerformanceResponse> {
+    const config = {
+      headers: {
+        'Ocp-Apim-Subscription-Key' : process.env.OTIS_PERFORMANCE_SUBSCRIPTION_KEY
+      }
+    }
+    return axiosInstance
+      .get(`/elevatorperformance/api/elevators/${elevatorId}/${process.env.COUNTRY_CODE}/v2/elevatorperformance?customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}&start_date=${startDate}&end_date=${endDate}`
+      ,config)
+      .then((res) => res.data);
+  
+  }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 SpinalCom - www.spinalcom.com
+ * Copyright 2018 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,33 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ConcurrencyManager } from 'axios-concurrency';
-import axios, { AxiosInstance } from 'axios';
-const MAX_CONCURRENT_REQUESTS = 2;
-
-let axiosInstance: AxiosInstance;
-let manager;
-function newInstance(baseURL: string) {
-  if (axiosInstance) {
-    detachInstance();
-  }
-  axiosInstance = axios.create({
-    baseURL,
-    method: 'get',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  manager = ConcurrencyManager(axiosInstance, MAX_CONCURRENT_REQUESTS);
+function s4(): string {
+  return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 }
 
-function detachInstance() {
-  if (axiosInstance) {
-    manager.detach();
-    axiosInstance = null;
-  }
+function genUID(constructor: string): string {
+  const res: string = `${constructor}-${s4() + s4()}-${s4()}-${s4()}-${s4()}-${
+      s4() + s4() + s4()}-${Date.now().toString(16)}`;
+
+  return res;
 }
 
-newInstance('https://developers-emea.otis.com');
-export default axiosInstance;
-export { axiosInstance };
-export { newInstance };
-export { detachInstance };
+export { genUID };

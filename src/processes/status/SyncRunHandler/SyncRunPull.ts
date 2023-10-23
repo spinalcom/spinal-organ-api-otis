@@ -45,13 +45,24 @@ import {
   IMaintenanceResponse,
   ICustomerCallBackResponse,
   IRepairResponse,
+  IPerformanceResponse,
+  IElevatorPerformance,
   getAvailabilityData,
   getMaintenanceData,
   getRepairData,
   getCustomerCallBackData,
+  getPerformanceData
 } from '../../../services/client/DIConsulte';
 import { attributeService } from "spinal-env-viewer-plugin-documentation-service";
-
+import { NetworkService } from "spinal-model-bmsnetwork";
+import {
+  InputDataDevice,
+  InputDataEndpoint,
+  InputDataEndpointGroup,
+  InputDataEndpointDataType,
+  InputDataEndpointType,
+} from '../../../model/InputData/InputDataModel/InputDataModel';
+import { SpinalServiceTimeseries } from "spinal-model-timeseries"
 
 /**
  * Main purpose of this class is to pull tickets from client.
@@ -64,21 +75,17 @@ export class SyncRunPull {
   config: OrganConfigModel;
   interval: number;
   running: boolean;
+  foundElevators : string [];
+  nwService : NetworkService;
+  timeseriesService : SpinalServiceTimeseries;
 
-  constructor(graph: SpinalGraph<any>, config: OrganConfigModel) {
+  constructor(graph: SpinalGraph<any>, config: OrganConfigModel, nwService :NetworkService) {
     this.graph = graph;
     this.config = config;
     this.running = false;
+    this.nwService = nwService;
+    this.timeseriesService = new SpinalServiceTimeseries();
   }
-
-  /*async updateSpinalContext(): Promise<IDemandeIntervention[]> {
-    try {
-      const context = await this.getContextTicket();
-      return await this.updateProcessTicket(context.info.id.get());
-    } catch (e) {
-      console.error(e);
-    }
-  }*/
 
   async getContextTicket() {
     const contexts = await this.graph.getChildren();
@@ -106,24 +113,33 @@ export class SyncRunPull {
     const customerCallBackData = await getCustomerCallBackData();
     const context = await this.getContext();
     for (const ticket of availabilityData) {
-        if (ticket.back_in_service_datetime == null) continue;
-        console.log('availability ticket :', ticket);
+        if(!this.foundElevators.includes(ticket.unit_id)){
+          this.foundElevators.push(ticket.unit_id);
+        }
         await this.updateProcessTicket(ticket,context,process.env.AVAILABILITY_PROCESS_NAME)
     }
     for (const ticket of maintenanceData) {  
-      console.log('maintenance ticket :', ticket);
+      if(!this.foundElevators.includes(ticket.unit_id)){
+        this.foundElevators.push(ticket.unit_id);
+      }
       await this.updateProcessTicket(ticket,context,process.env.MAINTENANCE_PROCESS_NAME)
     }
     for (const ticket of repairData) {
-      console.log('repair ticket :', ticket);
+      if(!this.foundElevators.includes(ticket.unit_id)){
+        this.foundElevators.push(ticket.unit_id);
+      }
       await this.updateProcessTicket(ticket,context,process.env.REPAIR_PROCESS_NAME)
     }
     for (const ticket of customerCallBackData) {
-      console.log('customerCallBack ticket :', ticket);
+      if(!this.foundElevators.includes(ticket.unit_id)){
+        this.foundElevators.push(ticket.unit_id);
+      }
       await this.updateProcessTicket(ticket,context,process.env.CUSTOMER_CALLBACK_PROCESS_NAME)
     }
 
   }
+
+
 
   async ticketsAreEqual(
     clientTicket:
@@ -136,8 +152,10 @@ export class SyncRunPull {
     const attributes = await attributeService.getAttributesByCategory(spinalTicket,'OTIS')
     //console.log('All attributes to test : ',attributes);
     for(const attr of attributes){
-      //console.log(`Testing ${attr.value.get()} and ${clientTicket[attr.label.get()]}`)
-      if (attr.value.get() != clientTicket[attr.label.get()]) return false;
+      if(clientTicket[attr.label.get()] == undefined) continue;
+      if (attr.value.get() != clientTicket[attr.label.get()].trim()){
+        return false;
+      }
     }
     return true;
   }
@@ -177,13 +195,14 @@ export class SyncRunPull {
     console.log('ticket does not exist, creating ...');
     // 2-Create ticket
     const ticketInfo = {
-      name : clientTicket.unit_id,
+      name : `${clientTicket.unit_id}`,
     };
     const ticketId = await spinalServiceTicket.addTicket(ticketInfo,correctProcess.id.get(),context.info.id.get(),process.env.TMP_TICKET_TARGET_ID);
     if(typeof ticketId !== 'string') return console.error(ticketId);
     const ticketNode = SpinalGraphService.getRealNode(ticketId);
     const category = await attributeService.addCategoryAttribute(ticketNode, 'OTIS')
     for(const key of Object.keys(clientTicket)){
+      if(clientTicket[key] == undefined || clientTicket[key] == " ") clientTicket[key] = '';
       attributeService.addAttributeByCategory(ticketNode,category,key,clientTicket[key],'string');
     }
   }
@@ -212,6 +231,17 @@ export class SyncRunPull {
       }
     }
     throw new Error('Context Not found');
+  }
+  async getNetworkContext(): Promise<SpinalNode<any>>{
+    const contexts = await this.graph.getChildren();
+    for (const context of contexts) {
+      if (context.info.name.get() === "NetworkOTIS") {
+        // @ts-ignore
+        SpinalGraphService._addNode(context);
+        return context;
+      }
+    }
+    throw new Error('Network Context Not found');
   }
 
   private waitFct(nb: number): Promise<void> {
@@ -245,50 +275,192 @@ export class SyncRunPull {
       return false;
     });
   }
+  
+  dateToNumber(dateString:string | Date) {
+    const dateObj = new Date(dateString);
+    return dateObj.getTime();
+  }
 
-  async clearLinks(parentId, relationName, relationType) {
-    let realNode = SpinalGraphService.getRealNode(parentId);
-    // @ts-ignore
-    SpinalGraphService._addNode(realNode);
+  async getUptimeEndpoint (deviceNode : SpinalNode<any>){
+    const deviceEndpoints = await deviceNode.getChildren("hasBmsEndpoint")
+    const uptimeEndpoint = deviceEndpoints.find((endpoint) => endpoint.info.name.get() === "Uptime 30 days");
+    SpinalGraphService._addNode(uptimeEndpoint);
+    return uptimeEndpoint;
+  }
 
-    if (realNode.hasRelation(relationName, relationType)) {
-      const children = await realNode.getChildren(relationName);
-      for (var elt in children) {
-        let realChildNode = children[elt];
-        await realNode.removeChild(realChildNode, relationName, relationType);
+  async getRunCountsEndpoint(deviceNode:  SpinalNode<any>){
+    const endpointGroups = await deviceNode.getChildren("hasBmsEndpointGroup");
+    const performanceEndpointGroup = endpointGroups.find((endpointGroup) => endpointGroup.info.name.get() === "Performance");
+    SpinalGraphService._addNode(performanceEndpointGroup);
+    const performanceEndpoints = await performanceEndpointGroup.getChildren("hasBmsEndpoint");
+    const runCountsEndpoint = performanceEndpoints.find((endpoint) => endpoint.info.name.get() === "Run counts");
+    SpinalGraphService._addNode(runCountsEndpoint);
+    return runCountsEndpoint;
+  }
+
+  async getDoorCyclesEndpoint(deviceNode:  SpinalNode<any>){
+    const endpointGroups = await deviceNode.getChildren("hasBmsEndpointGroup");
+    const performanceEndpointGroup = endpointGroups.find((endpointGroup) => endpointGroup.info.name.get() === "Performance");
+    SpinalGraphService._addNode(performanceEndpointGroup);
+    const performanceEndpoints = await performanceEndpointGroup.getChildren("hasBmsEndpoint");
+    const doorCyclesEndpoint = performanceEndpoints.find((endpoint) => endpoint.info.name.get() === "Door cycles");
+    SpinalGraphService._addNode(doorCyclesEndpoint);
+    return doorCyclesEndpoint;
+  }
+
+  async updateDevice(deviceNode : SpinalNode<any>){
+    const uptimeEndpoint = await this.getUptimeEndpoint(deviceNode);
+    const runCountsEndpoint = await this.getRunCountsEndpoint(deviceNode);
+    const doorCyclesEndpoint = await this.getDoorCyclesEndpoint(deviceNode);
+    
+    const startDate = moment().format('YYYY-MM-DD');
+    const endDate = moment().format('YYYY-MM-DD');
+    try{
+      const performanceData = await getPerformanceData(
+        deviceNode.info.name.get(), 
+        startDate, 
+        endDate
+      );
+      
+
+      
+      await this.nwService.setEndpointValue(uptimeEndpoint.info.id.get(),performanceData.uptime_30days);
+      for(const performance of performanceData.performance){
+        const runCountValue = parseInt(performance.run_counts);
+        const doorCyclesValue = parseInt(performance.door_cycles);
+        const newDate = this.dateToNumber(performance.date);
+
+        /*console.log({
+          "run endpoint" : runCountsEndpoint.info.id.get(),
+          "door endpoint" : doorCyclesEndpoint.info.id.get(),
+          "run count" : runCountValue,
+          "door cycles" : doorCyclesValue,
+          "date" : newDate
+        });*/
+        
+        //const res = await this.timeseriesService.insertFromEndpoint(runCountsEndpoint.info.id.get(),randomInt,newDate);
+        //console.log(" Insert success : ", res);
+        await this.timeseriesService.insertFromEndpoint(runCountsEndpoint.info.id.get(),runCountValue,newDate);
+        await this.timeseriesService.insertFromEndpoint(doorCyclesEndpoint.info.id.get(),doorCyclesValue,newDate);
       }
-      await realNode.removeRelation(relationName, relationType);
+      
+      
+    } catch(e){
+      console.log(e)
+    }
+
+    
+  }
+
+
+
+  async createDevicesIfNotExist(){
+    const networkContext = await this.getNetworkContext();
+
+    for(const elevator of this.foundElevators){
+      const devices = await networkContext.findInContext(
+        networkContext,
+        (node) => node.info.name.get() === elevator
+      );
+      if (devices.length > 0){
+        console.log("Device already exists,updating", elevator);
+        await this.updateDevice(devices[0]);
+        continue;
+      }
+      
+      const startDate = moment().subtract(120, 'days').format('YYYY-MM-DD');
+      const endDate = moment().format('YYYY-MM-DD');
+
+      try{
+        const performanceData = await getPerformanceData(
+          elevator, 
+          startDate, 
+          endDate
+        );
+        
+        const device = new InputDataDevice(elevator,"device")
+  
+        const uptime_30daysEndpoint  = new InputDataEndpoint(
+          "Uptime 30 days",
+          performanceData.uptime_30days,
+          '%',
+          InputDataEndpointDataType.Real,
+          InputDataEndpointType.Other,
+        );
+        device.children.push(uptime_30daysEndpoint);
+
+        const performanceEndpointGroup = new InputDataEndpointGroup(
+          "Performance",
+          "EndpointGroup"
+        );
+
+        const elevatorPerformance = performanceData.performance;
+
+        const runCountValue = parseInt(elevatorPerformance[elevatorPerformance.length-1].run_counts);
+        const runCountsEndpoint  = new InputDataEndpoint(
+          "Run counts",
+          runCountValue,
+          '',
+          InputDataEndpointDataType.Integer,
+          InputDataEndpointType.Other,
+        ); 
+  
+        const doorCylcesValue = parseInt(elevatorPerformance[elevatorPerformance.length-1].door_cycles);
+        const doorCyclesEndpoint  = new InputDataEndpoint(
+          "Door cycles",
+          doorCylcesValue,
+          '',
+          InputDataEndpointDataType.Integer,
+          InputDataEndpointType.Other,
+        ); 
+        
+        performanceEndpointGroup.children.push(runCountsEndpoint);
+        performanceEndpointGroup.children.push(doorCyclesEndpoint);
+        device.children.push(performanceEndpointGroup);
+        console.log("Creating device");
+        await this.nwService.updateData(device,this.dateToNumber(endDate));
+        await this.initData(networkContext,elevator,elevatorPerformance);
+
+      } catch(e){
+        
+      }
+      
+      
     }
   }
 
-  async clearTickets() {
-    console.log('Clearing tickets...');
-    const context = await this.getContext();
-    const tickets = await context.findInContext(context, (node) => {
-      return node.info.type.get() === SPINAL_TICKET_SERVICE_TICKET_TYPE;
-    });
-    console.log('tickets ', tickets.length);
-    for (const ticket of tickets) {
-      await ticket.removeFromGraph();
+
+  async initData(networkContext: SpinalNode<any>,deviceName :string,performanceData : IElevatorPerformance[] ){
+    const devices = await networkContext.findInContext(
+      networkContext,
+      (node) => node.info.name.get() === deviceName
+    );
+    const device = devices[0];
+    const runCountsEndpoint = await this.getRunCountsEndpoint(device);
+    const doorCyclesEndpoint = await this.getDoorCyclesEndpoint(device);
+
+    await attributeService.updateAttribute(runCountsEndpoint,"default","timeSeries maxDay",{value:"120"});
+    await attributeService.updateAttribute(doorCyclesEndpoint,"default","timeSeries maxDay",{value:"120"});
+    
+    for(const data of performanceData) {
+      const newDate = this.dateToNumber(data.date);
+      const runCountValue = parseInt(data.run_counts);
+      const doorCyclesValue = parseInt(data.door_cycles);
+      await this.timeseriesService.insertFromEndpoint(runCountsEndpoint.info.id.get(),runCountValue,newDate);
+      await this.timeseriesService.insertFromEndpoint(doorCyclesEndpoint.info.id.get(),doorCyclesValue,newDate);
     }
-    const steps = await context.findInContext(context, (node) => {
-      return node.info.type.get() === SPINAL_TICKET_SERVICE_STEP_TYPE;
-    });
-    for (const step of steps) {
-      await this.clearLinks(
-        step.info.id.get(),
-        SPINAL_TICKET_SERVICE_TICKET_RELATION_NAME,
-        SPINAL_RELATION_PTR_LST_TYPE
-      );
-    }
-    console.log('Clearing tickets ... DONE !');
+
   }
 
   async init(): Promise<void> {
     console.log('Initiating SyncRunPull');
     await this.initContext();
+    this.foundElevators = [];
     try {
       await this.pullAndUpdateTickets();
+      console.log("Created and updated elevator tickets")
+      await this.createDevicesIfNotExist();
+      console.log("Created and initialized elevator devices")
       this.config.lastSync.set(Date.now());
     } catch (e) {
       console.error(e);
@@ -308,6 +480,10 @@ export class SyncRunPull {
       try {
         console.log('Pulling tickets...');
         await this.pullAndUpdateTickets();
+        console.log("done.")
+        console.log("Updating devices...");
+        await this.createDevicesIfNotExist();
+        console.log("done.")
         this.config.lastSync.set(Date.now());
       } catch (e) {
         console.error(e);

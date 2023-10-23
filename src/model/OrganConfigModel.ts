@@ -28,6 +28,7 @@ export default class OrganConfigModel extends Model {
   digitalTwinPath: spinal.Str;
   ticketContextId: spinal.Str;
   spatialContextId: spinal.Str;
+  
   pullInterval: spinal.Val;
   lastSync: spinal.Val;
   restart: spinal.Bool;

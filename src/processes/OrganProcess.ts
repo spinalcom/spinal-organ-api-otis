@@ -28,13 +28,18 @@ import OrganConfig from './OrganConfig';
 import IStatus from './status/IStatus';
 import StandBy from './status/StandBy';
 import SyncRun from './status/SyncRun';
+import { NetworkService } from "spinal-model-bmsnetwork";
 
 export class OrganProcess {
   config: OrganConfigModel; // contains organ information
   graph: SpinalGraph<any>; // instance of graph
   mapStatusHandler: Map<number, IStatus> = new Map(); // gives info about current status of the organ
+  nwService: NetworkService;
 
-  constructor() { }
+  constructor() {
+    this.nwService = new NetworkService(true);
+    
+   }
 
   /**
    * Get organ config from spinalhub.
@@ -48,6 +53,7 @@ export class OrganProcess {
     const spinalIO = SpinalIO.getInstance();
     try {
       this.graph = await spinalIO.load(this.config.digitalTwinPath.get());
+      await this.nwService.init(this.graph, {contextName : "NetworkOTIS", contextType :"Network", networkName:"NetworkVirtualOTIS", networkType:"NetworkVirtual"});
     } catch (e) {
       console.error(
         'Imposible to load the graph,',
@@ -56,7 +62,7 @@ export class OrganProcess {
     }
 
     this.mapStatusHandler.set(0, new StandBy());
-    this.mapStatusHandler.set(3, new SyncRun(this.graph, this.config));
+    this.mapStatusHandler.set(3, new SyncRun(this.graph, this.config, this.nwService));
   }
 
   /**

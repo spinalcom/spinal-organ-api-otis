@@ -28,7 +28,7 @@ import OrganConfigModel from '../../model/OrganConfigModel';
 import IStatus from './IStatus';
 import SyncRunPull from './SyncRunHandler/SyncRunPull';
 import { join as resolvePath } from 'path';
-
+import { NetworkService } from "spinal-model-bmsnetwork";
 
 
 
@@ -39,13 +39,14 @@ export default class SyncRun implements IStatus {
   graph: SpinalGraph<any>;
   config: OrganConfigModel;
   syncRunPull: SyncRunPull;
+  nwService: NetworkService;
 
-
-  constructor(graph: SpinalGraph<any>, config: OrganConfigModel) {
+  constructor(graph: SpinalGraph<any>, config: OrganConfigModel,nwService: NetworkService) {
     this.graph = graph;
     this.config = config;
-    this.syncRunPull = new SyncRunPull(graph, config);
-
+    this.nwService = nwService;
+    this.syncRunPull = new SyncRunPull(graph, config, nwService);
+    
   }
 
 
@@ -54,8 +55,6 @@ export default class SyncRun implements IStatus {
 
     //await this.syncRunHub.init(this.clientBuildingId,map,this.axiosClient);
     await this.syncRunPull.init();
-    //await Promise.all([this.syncRunPull.run(), this.syncRunHub.run()]);
-    //await Promise.all([this.syncRunHub.run()]);
     await this.syncRunPull.run();
     return 0;
   }

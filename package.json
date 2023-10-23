@@ -17,15 +17,15 @@
     "axios-debug-log": "^0.8.2",
     "axios-retry": "^3.1.9",
     "dotenv": "^8.2.0",
-    "image-to-base64": "^2.2.0",
+    "getmac": "^5.20.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.33",
     "spinal-core-connectorjs_type": "git+https://github.com/spinalcom/spinal-core-connectorjs_type.git",
     "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git",
     "spinal-env-viewer-plugin-documentation-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-documentation-service.git",
     "spinal-env-viewer-plugin-group-manager-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-group-manager-service.git",
-    "spinal-service-ticket": "git+https://github.com/spinalcom/spinal-service-ticket.git",
-    "spinal-lib-organ-monitoring": "git+https://github.com/spinalcom/spinal-lib-organ-monitoring.git"
+    "spinal-lib-organ-monitoring": "git+https://github.com/spinalcom/spinal-lib-organ-monitoring.git",
+    "spinal-service-ticket": "git+https://github.com/spinalcom/spinal-service-ticket.git"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.5",
