@@ -63,5 +63,6 @@ npm run start
 
 Or using [pm2](https://pm2.keymetrics.io/docs/usage/quick-start/)
 ```bash
-pm2 start node dist/index.js
+pm2 start index.js --name organ-otis
+```
 ```
