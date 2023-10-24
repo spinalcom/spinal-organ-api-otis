@@ -53,7 +53,7 @@ export class OrganProcess {
     const spinalIO = SpinalIO.getInstance();
     try {
       this.graph = await spinalIO.load(this.config.digitalTwinPath.get());
-      await this.nwService.init(this.graph, {contextName : "NetworkOTIS", contextType :"Network", networkName:"NetworkVirtualOTIS", networkType:"NetworkVirtual"});
+      await this.nwService.init(this.graph, {contextName : "Network OTIS", contextType :"Network", networkName:"Virtual Network OTIS", networkType:"NetworkVirtual"});
     } catch (e) {
       console.error(
         'Imposible to load the graph,',
