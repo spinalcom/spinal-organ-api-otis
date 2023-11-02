@@ -46,12 +46,14 @@ import {
   ICustomerCallBackResponse,
   IRepairResponse,
   IPerformanceResponse,
+  IStatusResponse,
   IElevatorPerformance,
   getAvailabilityData,
   getMaintenanceData,
   getRepairData,
   getCustomerCallBackData,
   getPerformanceData,
+  getStatusData,
 } from '../../../services/client/DIConsulte';
 import { attributeService } from 'spinal-env-viewer-plugin-documentation-service';
 import { NetworkService } from 'spinal-model-bmsnetwork';
@@ -290,7 +292,7 @@ export class SyncRunPull {
         return;
       }
     }
-    console.log('ticket does not exist, creating ...');
+    console.log('ticket does not exist, creating ticket ...');
     // 2-Create ticket
     const ticketInfo = {
       name: `${clientTicket.unit_id}`,
@@ -556,7 +558,54 @@ export class SyncRunPull {
     return doorCyclesEndpoint;
   }
 
-  async updateDevice(deviceNode: SpinalNode<any>) {
+  async getUnitStateEndpoint(deviceNode: SpinalNode<any>) {
+    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
+    const unitStateEndpoint = deviceEndpoints.find(
+      (endpoint) => endpoint.info.name.get() === 'Unit state'
+    );
+    SpinalGraphService._addNode(unitStateEndpoint);
+    return unitStateEndpoint;
+  }
+
+  async getFloorPositionEndpoint(deviceNode: SpinalNode<any>) {
+    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
+    const floorPositionEndpoint = deviceEndpoints.find(
+      (endpoint) => endpoint.info.name.get() === 'Floor position'
+    );
+    SpinalGraphService._addNode(floorPositionEndpoint);
+    return floorPositionEndpoint;
+  }
+
+  async getMovementInfoEndpoint(deviceNode: SpinalNode<any>) {
+    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
+    const movementInfoEndpoint = deviceEndpoints.find(
+      (endpoint) => endpoint.info.name.get() === 'Movement'
+    );
+    SpinalGraphService._addNode(movementInfoEndpoint);
+    return movementInfoEndpoint;
+  }
+
+  async getFrontDoorStatusEndpoint(deviceNode: SpinalNode<any>) {
+    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
+    const frontDoorStatusEndpoint = deviceEndpoints.find(
+      (endpoint) => endpoint.info.name.get() === 'Front door status'
+    );
+    SpinalGraphService._addNode(frontDoorStatusEndpoint);
+    return frontDoorStatusEndpoint;
+  }
+
+  async getRearDoorStatusEndpoint(deviceNode: SpinalNode<any>) {
+    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
+    const rearDoorStatusEndpoint = deviceEndpoints.find(
+      (endpoint) => endpoint.info.name.get() === 'Rear door status'
+    );
+    SpinalGraphService._addNode(rearDoorStatusEndpoint);
+    return rearDoorStatusEndpoint;
+  }
+
+
+
+  async updatePerformanceEndpoints(deviceNode: SpinalNode<any>) {
     const uptimeEndpoint = await this.getUptimeEndpoint(deviceNode);
     const runCountsEndpoint = await this.getRunCountsEndpoint(deviceNode);
     const doorCyclesEndpoint = await this.getDoorCyclesEndpoint(deviceNode);
@@ -605,6 +654,38 @@ export class SyncRunPull {
     }
   }
 
+  async updateStatusEndpoints(deviceNode: SpinalNode<any>) {
+    const unitStateEndpoint = await this.getUnitStateEndpoint(deviceNode);
+    const floorPositionEndpoint = await this.getFloorPositionEndpoint(deviceNode);
+    const movementInfoEndpoint = await this.getMovementInfoEndpoint(deviceNode);
+    const frontDoorStatusEndpoint = await this.getFrontDoorStatusEndpoint(deviceNode);
+    const rearDoorStatusEndpoint = await this.getRearDoorStatusEndpoint(deviceNode);
+
+    const statusData = await getStatusData(deviceNode.info.name.get());
+
+    await this.nwService.setEndpointValue(
+      unitStateEndpoint.info.id.get(),
+      statusData.unit_state
+    );
+    await this.nwService.setEndpointValue(
+      floorPositionEndpoint.info.id.get(),
+      statusData.floor
+    );
+    await this.nwService.setEndpointValue(
+      movementInfoEndpoint.info.id.get(),
+      statusData.moving_direction
+    );
+    await this.nwService.setEndpointValue(
+      frontDoorStatusEndpoint.info.id.get(),
+      statusData.front_door_status
+    );
+    await this.nwService.setEndpointValue(
+      rearDoorStatusEndpoint.info.id.get(),
+      statusData.rear_door_status
+    );
+  }
+
+
   async createDevicesIfNotExist() {
     const networkContext = await this.getNetworkContext();
 
@@ -615,7 +696,8 @@ export class SyncRunPull {
       );
       if (devices.length > 0) {
         console.log('Device already exists,updating', elevator);
-        await this.updateDevice(devices[0]);
+        await this.updatePerformanceEndpoints(devices[0]);
+        await this.updateStatusEndpoints(devices[0]);
         continue;
       }
 
@@ -628,6 +710,8 @@ export class SyncRunPull {
           startDate,
           endDate
         );
+
+        const statusData = await getStatusData(elevator);
 
         const device = new InputDataDevice(elevator, 'device');
 
@@ -663,9 +747,55 @@ export class SyncRunPull {
           InputDataEndpointDataType.Integer,
           InputDataEndpointType.Other
         );
-
         device.children.push(runCountsEndpoint);
         device.children.push(doorCyclesEndpoint);
+
+
+        const unitStateEndpoint = new InputDataEndpoint(
+          'Unit state',
+          statusData.unit_state,
+          '',
+          InputDataEndpointDataType.String,
+          InputDataEndpointType.Other
+        );
+        
+        const floorPositionEndpoint = new InputDataEndpoint(
+          'Floor position',
+          statusData.floor,
+          '',
+          InputDataEndpointDataType.String,
+          InputDataEndpointType.Other
+        );
+
+        const movementInfoEndpoint = new InputDataEndpoint(
+          'Movement',
+          statusData.moving_direction,
+          '',
+          InputDataEndpointDataType.String,
+          InputDataEndpointType.Other
+        );
+
+        const frontDoorStatusEndpoint = new InputDataEndpoint(
+          'Front door status',
+          statusData.front_door_status,
+          '',
+          InputDataEndpointDataType.String,
+          InputDataEndpointType.Other
+        );
+
+        const rearDoorStatusEndpoint = new InputDataEndpoint(
+          'Rear door status',
+          statusData.rear_door_status,
+          '',
+          InputDataEndpointDataType.String,
+          InputDataEndpointType.Other
+        );
+        device.children.push(unitStateEndpoint);
+        device.children.push(floorPositionEndpoint);
+        device.children.push(movementInfoEndpoint);
+        device.children.push(frontDoorStatusEndpoint);
+        device.children.push(rearDoorStatusEndpoint);
+
         console.log('Creating device');
         await this.nwService.updateData(device, this.dateToNumber(endDate));
         await this.initData(networkContext, elevator, elevatorPerformance);

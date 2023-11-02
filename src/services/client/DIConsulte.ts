@@ -201,85 +201,122 @@ export interface IRepairResponse {
 }
 
 export interface IElevatorPerformance {
-  date : Date;
+  date: Date;
   run_counts: string;
   door_cycles: string;
 }
-export interface IPerformanceResponse{
+export interface IPerformanceResponse {
   unit_id: string;
   country_code: string;
   country_unit: string;
   unit_name: string;
   unit_type: string;
   uptime_30days: number;
-  performance : IElevatorPerformance[];
+  performance: IElevatorPerformance[];
 }
 
+export interface IStatusResponse {
+  unit_name: string;
+  lift_type: string;
+  unit_state: string;
+  floor: string;
+  moving_direction: string;
+  front_door_status: string;
+  rear_door_status: string;
+}
 
-
-
-export async function getAvailabilityData(
-): Promise<IAvailabilityResponse[]> {
+export async function getAvailabilityData(): Promise<IAvailabilityResponse[]> {
   const config = {
     headers: {
-      'Ocp-Apim-Subscription-Key' : process.env.OTIS_AVAILABILITY_SUBSCRIPTION_KEY
-    }
-  }
+      'Ocp-Apim-Subscription-Key':
+        process.env.OTIS_AVAILABILITY_SUBSCRIPTION_KEY,
+    },
+  };
   return axiosInstance
-    .get(`/elevatoravailability/api/latestavailability?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`, config)
+    .get(
+      `/elevatoravailability/api/latestavailability?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
+      config
+    )
     .then((res) => res.data);
 }
 
-export async function getMaintenanceData(
-): Promise<IMaintenanceResponse[]> {
+export async function getMaintenanceData(): Promise<IMaintenanceResponse[]> {
   const config = {
     headers: {
-      'Ocp-Apim-Subscription-Key' : process.env.OTIS_MAINTENANCE_SUBSCRIPTION_KEY
-    }
-  }
+      'Ocp-Apim-Subscription-Key':
+        process.env.OTIS_MAINTENANCE_SUBSCRIPTION_KEY,
+    },
+  };
   return axiosInstance
-    .get(`/elevatormaintenance/api/latestmaintenanceinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,config)
+    .get(
+      `/elevatormaintenance/api/latestmaintenanceinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
+      config
+    )
     .then((res) => res.data);
 }
 
-export async function getRepairData(
-): Promise<IRepairResponse[]> {
+export async function getRepairData(): Promise<IRepairResponse[]> {
   const config = {
     headers: {
-      'Ocp-Apim-Subscription-Key' : process.env.OTIS_REPAIR_SUBSCRIPTION_KEY
-    }
-  }
+      'Ocp-Apim-Subscription-Key': process.env.OTIS_REPAIR_SUBSCRIPTION_KEY,
+    },
+  };
   return axiosInstance
-    .get(`/elevatorrepair/api/latestrepairinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,config)
+    .get(
+      `/elevatorrepair/api/latestrepairinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
+      config
+    )
     .then((res) => res.data);
 }
 
-export async function getCustomerCallBackData(
-): Promise<ICustomerCallBackResponse[]> {
+export async function getCustomerCallBackData(): Promise<
+  ICustomerCallBackResponse[]
+> {
   const config = {
     headers: {
-      'Ocp-Apim-Subscription-Key' : process.env.OTIS_CUSTOMER_CALLBACK_SUBSCRIPTION_KEY
-    }
-  }
+      'Ocp-Apim-Subscription-Key':
+        process.env.OTIS_CUSTOMER_CALLBACK_SUBSCRIPTION_KEY,
+    },
+  };
   return axiosInstance
-    .get(`/callback/api/latestcallbackinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,config)
+    .get(
+      `/callback/api/latestcallbackinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
+      config
+    )
     .then((res) => res.data);
-
 }
 
-export async function getPerformanceData( 
-  elevatorId : string,
-  startDate : string,
-  endDate : string
-  ): Promise<IPerformanceResponse> {
-    const config = {
-      headers: {
-        'Ocp-Apim-Subscription-Key' : process.env.OTIS_PERFORMANCE_SUBSCRIPTION_KEY
-      }
-    }
-    return axiosInstance
-      .get(`/elevatorperformance/api/elevators/${elevatorId}/${process.env.COUNTRY_CODE}/v2/elevatorperformance?customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}&start_date=${startDate}&end_date=${endDate}`
-      ,config)
-      .then((res) => res.data);
-  
-  }
+export async function getPerformanceData(
+  elevatorId: string,
+  startDate: string,
+  endDate: string
+): Promise<IPerformanceResponse> {
+  const config = {
+    headers: {
+      'Ocp-Apim-Subscription-Key':
+        process.env.OTIS_PERFORMANCE_SUBSCRIPTION_KEY,
+    },
+  };
+  return axiosInstance
+    .get(
+      `/elevatorperformance/api/elevators/${elevatorId}/${process.env.COUNTRY_CODE}/v2/elevatorperformance?customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}&start_date=${startDate}&end_date=${endDate}`,
+      config
+    )
+    .then((res) => res.data);
+}
+
+export async function getStatusData(
+  elevatorId: string
+): Promise<IStatusResponse> {
+  const config = {
+    headers: {
+      'Ocp-Apim-Subscription-Key': process.env.OTIS_STATUS_SUBSCRIPTION_KEY,
+    },
+  };
+  return axiosInstance
+    .get(
+      `/elevatorstatus/api/elevators/${elevatorId}/${process.env.COUNTRY_CODE}/v1/elevatorstatus?customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
+      config
+    )
+    .then((res) => res.data);
+}
