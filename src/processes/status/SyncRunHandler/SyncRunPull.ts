@@ -80,6 +80,7 @@ export class SyncRunPull {
   foundElevators: string[];
   nwService: NetworkService;
   timeseriesService: SpinalServiceTimeseries;
+  mappingElevators: Map<string, string>;
 
   constructor(
     graph: SpinalGraph<any>,
@@ -91,9 +92,10 @@ export class SyncRunPull {
     this.running = false;
     this.nwService = nwService;
     this.timeseriesService = new SpinalServiceTimeseries();
+    this.mappingElevators = new Map<string, string>();
   }
 
-  async getContextTicket() {
+  async getContext(): Promise<SpinalNode<any>> {
     const contexts = await this.graph.getChildren();
     for (const context of contexts) {
       if (context.info.id.get() === this.config.ticketContextId.get()) {
@@ -103,6 +105,50 @@ export class SyncRunPull {
       }
     }
     throw new Error('Context Not found');
+  }
+
+  async mapElevatorsToId(): Promise<void> {
+    const contexts = await this.graph.getChildren();
+    const context = contexts.find((context) => {
+      // @ts-ignore
+      SpinalGraphService._addNode(context);
+      return context.info.name.get() === process.env.EQUIPMENT_CONTEXT_NAME;
+    });
+    if (!context)
+      throw new Error(
+        `Context ${process.env.EQUIPMENT_CONTEXT_NAME} not found`
+      );
+    const categories = await context.getChildren();
+    const category = categories.find(
+      (category) => {
+        // @ts-ignore
+        SpinalGraphService._addNode(category);
+        return category.info.name.get() === process.env.EQUIPMENT_CATEGORY_NAME
+  });
+    if (!category)
+      throw new Error(
+        `Category ${process.env.ELEVATOR_CATEGORY_NAME} not found`
+      );
+    const groups = await category.getChildren();
+    const group = groups.find(
+      (group) => {
+        // @ts-ignore
+        SpinalGraphService._addNode(group);
+        return group.info.name.get() === process.env.EQUIPMENT_GROUP_NAME
+    });
+    if (!group)
+      throw new Error(`Group ${process.env.EQUIPMENT_GROUP_NAME} not found`);
+
+    const equipments = await group.getChildren();
+    for (const equipment of equipments) {
+      // @ts-ignore
+      SpinalGraphService._addNode(equipment);
+      const equipment_name = equipment.info.name.get().split('_')[0];
+      const elevator_names = equipment_name.split('-');
+      for (const elevator_name of elevator_names) {
+        this.mappingElevators.set(elevator_name, equipment.info.id.get());
+      }
+    }
   }
 
   /**
@@ -142,7 +188,6 @@ export class SyncRunPull {
         context,
         availabilityProcess.id.get()
       );
-      //await this.updateProcessTicket(ticket,context,process.env.AVAILABILITY_PROCESS_NAME)
     }
     for (const ticket of maintenanceData) {
       if (!this.foundElevators.includes(ticket.unit_id)) {
@@ -232,7 +277,7 @@ export class SyncRunPull {
       ticketInfo,
       processId,
       context.info.id.get(),
-      process.env.TMP_TICKET_TARGET_ID
+      this.mappingElevators.get(clientTicket.unit_id)
     );
     if (typeof ticketId !== 'string') return console.error(ticketId);
     if (clientTicket.resolution.trim() != '')
@@ -247,7 +292,7 @@ export class SyncRunPull {
       'OTIS'
     );
     for (const key of Object.keys(clientTicket)) {
-      if(key == 'caller_name' || key == 'mechanic_name') continue;
+      if (key == 'caller_name' || key == 'mechanic_name') continue;
       if (clientTicket[key] == undefined || clientTicket[key] == ' ')
         clientTicket[key] = '';
 
@@ -298,7 +343,7 @@ export class SyncRunPull {
       ticketInfo,
       processId,
       context.info.id.get(),
-      process.env.TMP_TICKET_TARGET_ID
+      this.mappingElevators.get(clientTicket.unit_id)
     );
     if (typeof ticketId !== 'string') return console.error(ticketId);
 
@@ -313,7 +358,7 @@ export class SyncRunPull {
       'OTIS'
     );
     for (const key of Object.keys(clientTicket)) {
-      if(key == 'caller_name' || key == 'mechanic_name') continue;
+      if (key == 'caller_name' || key == 'mechanic_name') continue;
       if (clientTicket[key] == undefined || clientTicket[key] == ' ')
         clientTicket[key] = '';
       attributeService.addAttributeByCategory(
@@ -369,7 +414,7 @@ export class SyncRunPull {
       ticketInfo,
       processId,
       context.info.id.get(),
-      process.env.TMP_TICKET_TARGET_ID
+      this.mappingElevators.get(clientTicket.unit_id)
     );
     if (typeof ticketId !== 'string') return console.error(ticketId);
 
@@ -384,7 +429,7 @@ export class SyncRunPull {
       'OTIS'
     );
     for (const key of Object.keys(clientTicket)) {
-      if(key == 'caller_name' || key == 'mechanic_name') continue;
+      if (key == 'caller_name' || key == 'mechanic_name') continue;
       if (clientTicket[key] == undefined || clientTicket[key] == ' ')
         clientTicket[key] = '';
       attributeService.addAttributeByCategory(
@@ -437,11 +482,14 @@ export class SyncRunPull {
     const ticketInfo = {
       name: `${clientTicket.unit_id}`,
     };
+    console.log(
+      ` node id to link to : ${this.mappingElevators.get(clientTicket.unit_id)}`
+    );
     const ticketId = await spinalServiceTicket.addTicket(
       ticketInfo,
       processId,
       context.info.id.get(),
-      process.env.TMP_TICKET_TARGET_ID
+      this.mappingElevators.get(clientTicket.unit_id)
     );
     if (typeof ticketId !== 'string') return console.error(ticketId);
     await spinalServiceTicket.moveTicketToNextStep(
@@ -455,7 +503,7 @@ export class SyncRunPull {
       'OTIS'
     );
     for (const key of Object.keys(clientTicket)) {
-      if(key == 'caller_name' || key == 'mechanic_name') continue;
+      if (key == 'caller_name' || key == 'mechanic_name') continue;
       if (clientTicket[key] == undefined || clientTicket[key] == ' ')
         clientTicket[key] = '';
       attributeService.addAttributeByCategory(
@@ -482,17 +530,6 @@ export class SyncRunPull {
     return context;
   }
 
-  async getContext(): Promise<SpinalNode<any>> {
-    const contexts = await this.graph.getChildren();
-    for (const context of contexts) {
-      if (context.info.id.get() === this.config.ticketContextId.get()) {
-        // @ts-ignore
-        SpinalGraphService._addNode(context);
-        return context;
-      }
-    }
-    throw new Error('Context Not found');
-  }
   async getNetworkContext(): Promise<SpinalNode<any>> {
     const contexts = await this.graph.getChildren();
     for (const context of contexts) {
@@ -555,7 +592,6 @@ export class SyncRunPull {
     return unitStateEndpoint;
   }
 
-
   dateToNumber(dateString: string | Date) {
     const dateObj = new Date(dateString);
     return dateObj.getTime();
@@ -569,7 +605,6 @@ export class SyncRunPull {
 
     SpinalGraphService._addNode(uptimeEndpoint);
     return uptimeEndpoint;
-    
   }
 
   async getDoorCyclesEndpoint(deviceNode: SpinalNode<any>) {
@@ -590,15 +625,6 @@ export class SyncRunPull {
     return floorPositionEndpoint;
   }
 
-  async getMovementInfoEndpoint(deviceNode: SpinalNode<any>) {
-    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
-    const movementInfoEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Movement'
-    );
-    SpinalGraphService._addNode(movementInfoEndpoint);
-    return movementInfoEndpoint;
-  }
-
   async getFrontDoorStatusEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const frontDoorStatusEndpoint = deviceEndpoints.find(
@@ -606,6 +632,15 @@ export class SyncRunPull {
     );
     SpinalGraphService._addNode(frontDoorStatusEndpoint);
     return frontDoorStatusEndpoint;
+  }
+
+  async getMovementInfoEndpoint(deviceNode: SpinalNode<any>) {
+    const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
+    const movementInfoEndpoint = deviceEndpoints.find(
+      (endpoint) => endpoint.info.name.get() === 'Movement'
+    );
+    SpinalGraphService._addNode(movementInfoEndpoint);
+    return movementInfoEndpoint;
   }
 
   async getRearDoorStatusEndpoint(deviceNode: SpinalNode<any>) {
@@ -875,6 +910,8 @@ export class SyncRunPull {
   async init(): Promise<void> {
     console.log('Initiating SyncRunPull');
     await this.initContext();
+    await this.mapElevatorsToId();
+    console.log(this.mappingElevators);
     this.foundElevators = [];
     try {
       await this.pullAndUpdateTickets();
@@ -885,7 +922,7 @@ export class SyncRunPull {
     } catch (e) {
       console.error(e);
     }
-  } 
+  }
 
   async run(): Promise<void> {
     this.running = true;
@@ -921,7 +958,7 @@ export class SyncRunPull {
       if (!this.running) return;
       try {
         console.log('Updating performance endpoints...');
-        await this.updatePerformanceEndpoints(); 
+        await this.updatePerformanceEndpoints();
         console.log('done.');
       } catch (e) {
         console.error(e);
