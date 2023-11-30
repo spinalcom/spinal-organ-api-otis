@@ -574,10 +574,15 @@ export class SyncRunPull {
     });
   }
 
+  dateToNumber(dateString: string | Date) {
+    const dateObj = new Date(dateString);
+    return dateObj.getTime();
+  }
+
   async getRunCountsEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const runCountsEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Run counts'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Run counts`
     );
     SpinalGraphService._addNode(runCountsEndpoint);
     return runCountsEndpoint;
@@ -586,21 +591,16 @@ export class SyncRunPull {
   async getUnitStateEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const unitStateEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Unit state'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Unit state`
     );
     SpinalGraphService._addNode(unitStateEndpoint);
     return unitStateEndpoint;
   }
-
-  dateToNumber(dateString: string | Date) {
-    const dateObj = new Date(dateString);
-    return dateObj.getTime();
-  }
-
+  
   async getUptimeEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const uptimeEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Uptime 30 days'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Uptime 30 days`
     );
 
     SpinalGraphService._addNode(uptimeEndpoint);
@@ -610,7 +610,7 @@ export class SyncRunPull {
   async getDoorCyclesEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const doorCyclesEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Door cycles'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Door cycles`
     );
     SpinalGraphService._addNode(doorCyclesEndpoint);
     return doorCyclesEndpoint;
@@ -619,7 +619,7 @@ export class SyncRunPull {
   async getFloorPositionEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const floorPositionEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Floor position'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Floor position`
     );
     SpinalGraphService._addNode(floorPositionEndpoint);
     return floorPositionEndpoint;
@@ -628,7 +628,7 @@ export class SyncRunPull {
   async getFrontDoorStatusEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const frontDoorStatusEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Front door status'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Front door status`
     );
     SpinalGraphService._addNode(frontDoorStatusEndpoint);
     return frontDoorStatusEndpoint;
@@ -637,7 +637,7 @@ export class SyncRunPull {
   async getMovementInfoEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const movementInfoEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Movement'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Movement`
     );
     SpinalGraphService._addNode(movementInfoEndpoint);
     return movementInfoEndpoint;
@@ -646,7 +646,7 @@ export class SyncRunPull {
   async getRearDoorStatusEndpoint(deviceNode: SpinalNode<any>) {
     const deviceEndpoints = await deviceNode.getChildren('hasBmsEndpoint');
     const rearDoorStatusEndpoint = deviceEndpoints.find(
-      (endpoint) => endpoint.info.name.get() === 'Rear door status'
+      (endpoint) => endpoint.info.name.get() === `${deviceNode.info.name.get()}_Rear door status`
     );
     SpinalGraphService._addNode(rearDoorStatusEndpoint);
     return rearDoorStatusEndpoint;
@@ -778,7 +778,7 @@ export class SyncRunPull {
         const device = new InputDataDevice(elevator, 'device');
 
         const uptime_30daysEndpoint = new InputDataEndpoint(
-          'Uptime 30 days',
+          `${elevator}_Uptime 30 days`,
           performanceData.uptime_30days,
           '%',
           InputDataEndpointDataType.Real,
@@ -792,7 +792,7 @@ export class SyncRunPull {
           elevatorPerformance[elevatorPerformance.length - 1].run_counts
         );
         const runCountsEndpoint = new InputDataEndpoint(
-          'Run counts',
+          `${elevator}_Run counts`,
           runCountValue,
           '',
           InputDataEndpointDataType.Integer,
@@ -803,7 +803,7 @@ export class SyncRunPull {
           elevatorPerformance[elevatorPerformance.length - 1].door_cycles
         );
         const doorCyclesEndpoint = new InputDataEndpoint(
-          'Door cycles',
+          `${elevator}_Door cycles`,
           doorCylcesValue,
           '',
           InputDataEndpointDataType.Integer,
@@ -813,7 +813,7 @@ export class SyncRunPull {
         device.children.push(doorCyclesEndpoint);
 
         const unitStateEndpoint = new InputDataEndpoint(
-          'Unit state',
+          `${elevator}_Unit state`,
           statusData.unit_state,
           '',
           InputDataEndpointDataType.String,
@@ -821,7 +821,7 @@ export class SyncRunPull {
         );
 
         const floorPositionEndpoint = new InputDataEndpoint(
-          'Floor position',
+          `${elevator}_Floor position`,
           statusData.floor,
           '',
           InputDataEndpointDataType.String,
@@ -829,7 +829,7 @@ export class SyncRunPull {
         );
 
         const movementInfoEndpoint = new InputDataEndpoint(
-          'Movement',
+          `${elevator}_Movement`,
           statusData.moving_direction,
           '',
           InputDataEndpointDataType.String,
@@ -837,7 +837,7 @@ export class SyncRunPull {
         );
 
         const frontDoorStatusEndpoint = new InputDataEndpoint(
-          'Front door status',
+          `${elevator}_Front door status`,
           statusData.front_door_status,
           '',
           InputDataEndpointDataType.String,
@@ -845,7 +845,7 @@ export class SyncRunPull {
         );
 
         const rearDoorStatusEndpoint = new InputDataEndpoint(
-          'Rear door status',
+          `${elevator}_Rear door status`,
           statusData.rear_door_status,
           '',
           InputDataEndpointDataType.String,
