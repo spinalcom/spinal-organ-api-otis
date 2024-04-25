@@ -27,9 +27,9 @@ import {
   File,
   Ptr,
   spinalCore,
-} from 'spinal-core-connectorjs_type';
+} from 'spinal-core-connectorjs';
 const configJson = require('../../config');
-import ConfigFile from 'spinal-lib-organ-monitoring/dist/classes/ConfigFile.js';
+import ConfigFile from 'spinal-lib-organ-monitoring';
 
 export interface SpinalConfig {
   protocol: string;
@@ -58,8 +58,8 @@ export default class SpinalIO {
     ConfigFile.init(
       this.conn,
       `${configJson.organ.name}`,
+      "Connector",
       config.host,
-      config.protocol,
       parseInt(config.port as string)
     );
   }
