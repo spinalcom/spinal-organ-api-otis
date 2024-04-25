@@ -264,11 +264,11 @@ export class SyncRunPull {
         spinalTicket.id.get()
       );
       if (await this.ticketsAreEqual(clientTicket, spinalTicketNode)) {
-        console.log('ticket already exist');
+        console.log(`${clientTicket.unit_id} Customer ticket already exist`);
         return;
       }
     }
-    console.log('ticket does not exist, creating ...');
+    console.log(`${clientTicket.unit_id} Customer ticket does not exist, creating ...`);
     // 2-Create ticket
     const ticketInfo = {
       name: `${clientTicket.unit_id}`,
@@ -330,11 +330,11 @@ export class SyncRunPull {
         spinalTicket.id.get()
       );
       if (await this.ticketsAreEqual(clientTicket, spinalTicketNode)) {
-        console.log('ticket already exist');
+        console.log(`${clientTicket.unit_id} Maintenance ticket already exist`)
         return;
       }
     }
-    console.log('ticket does not exist, creating ticket ...');
+    console.log(`${clientTicket.unit_id} Maintenance ticket does not exist, creating ticket ...`);
     // 2-Create ticket
     const ticketInfo = {
       name: `${clientTicket.unit_id}`,
@@ -400,12 +400,12 @@ export class SyncRunPull {
           'This unit was never repaired in last 12 months'
       ) {
         console.log(
-          'ticket already exist or unit was never repaired in last 12 months'
+          `${clientTicket.unit_id} Repair ticket already exist or unit was never repaired in last 12 months`
         );
         return;
       }
     }
-    console.log('ticket does not exist, creating ...');
+    console.log(`${clientTicket.unit_id} Repair ticket does not exist, creating ...`);
     // 2-Create ticket
     const ticketInfo = {
       name: `${clientTicket.unit_id}`,
@@ -472,12 +472,12 @@ export class SyncRunPull {
           'This unit was never shutdown in last 12 months'
       ) {
         console.log(
-          'ticket already exist or unit was never shutdown in last 12 months'
+          `${clientTicket.unit_id} Availability ticket already exist or unit was never shutdown in last 12 months`
         );
         return;
       }
     }
-    console.log('ticket does not exist, creating ...');
+    console.log(`${clientTicket.unit_id} Availability ticket does not exist, creating ...`);
     // 2-Create ticket
     const ticketInfo = {
       name: `${clientTicket.unit_id}`,
@@ -929,8 +929,8 @@ export class SyncRunPull {
 
     // Initialize the timers for each task
     this.startTicketUpdateTimer();
-    this.startPerformanceEndpointUpdateTimer();
-    this.startStatusEndpointUpdateTimer();
+    //this.startPerformanceEndpointUpdateTimer();
+    //this.startStatusEndpointUpdateTimer();
   }
 
   startTicketUpdateTimer() {

@@ -57,7 +57,7 @@ export default class SpinalIO {
     this.conn = spinalCore.connect(connectOpt);
     ConfigFile.init(
       this.conn,
-      `${configJson.organ.name}-config`,
+      `${configJson.organ.name}`,
       config.host,
       config.protocol,
       parseInt(config.port as string)
