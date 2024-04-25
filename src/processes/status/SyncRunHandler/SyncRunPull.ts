@@ -929,8 +929,8 @@ export class SyncRunPull {
 
     // Initialize the timers for each task
     this.startTicketUpdateTimer();
-    //this.startPerformanceEndpointUpdateTimer();
-    //this.startStatusEndpointUpdateTimer();
+    this.startPerformanceEndpointUpdateTimer();
+    this.startStatusEndpointUpdateTimer();
   }
 
   startTicketUpdateTimer() {
