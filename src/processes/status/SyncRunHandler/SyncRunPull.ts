@@ -250,7 +250,7 @@ export class SyncRunPull {
         processId,
         context.info.id.get()
       );
-    const tickets: SpinalNodeRef[] = [];
+    let tickets: SpinalNodeRef[] = [];
 
     for (const step of steps) {
       const stepTickets = await spinalServiceTicket.getTicketsFromStep(
@@ -259,12 +259,14 @@ export class SyncRunPull {
       tickets.push(...stepTickets);
     }
 
+    tickets = tickets.filter((ticket) => ticket.name.get() == clientTicket.unit_id);
+
     for (const spinalTicket of tickets) {
       const spinalTicketNode = SpinalGraphService.getRealNode(
         spinalTicket.id.get()
       );
       if (await this.ticketsAreEqual(clientTicket, spinalTicketNode)) {
-        console.log(`${clientTicket.unit_id} Customer ticket already exist`);
+        console.log(`${clientTicket.unit_id} Customer ticket already exist, serverId: ${spinalTicketNode._server_id}`);
         return;
       }
     }
@@ -317,13 +319,15 @@ export class SyncRunPull {
         processId,
         context.info.id.get()
       );
-    const tickets: SpinalNodeRef[] = [];
+    let  tickets: SpinalNodeRef[] = [];
     for (const step of steps) {
       const stepTickets = await spinalServiceTicket.getTicketsFromStep(
         step.id.get()
       );
       tickets.push(...stepTickets);
     }
+
+    tickets = tickets.filter((ticket) => ticket.name.get() == clientTicket.unit_id);
 
     for (const spinalTicket of tickets) {
       const spinalTicketNode = SpinalGraphService.getRealNode(
@@ -382,13 +386,15 @@ export class SyncRunPull {
         processId,
         context.info.id.get()
       );
-    const tickets: SpinalNodeRef[] = [];
+    let  tickets: SpinalNodeRef[] = [];
     for (const step of steps) {
       const stepTickets = await spinalServiceTicket.getTicketsFromStep(
         step.id.get()
       );
       tickets.push(...stepTickets);
     }
+
+    tickets = tickets.filter((ticket) => ticket.name.get() == clientTicket.unit_id);
 
     for (const spinalTicket of tickets) {
       const spinalTicketNode = SpinalGraphService.getRealNode(
@@ -454,14 +460,14 @@ export class SyncRunPull {
         processId,
         context.info.id.get()
       );
-    const tickets: SpinalNodeRef[] = [];
+    let  tickets: SpinalNodeRef[] = [];
     for (const step of steps) {
       const stepTickets = await spinalServiceTicket.getTicketsFromStep(
         step.id.get()
       );
       tickets.push(...stepTickets);
     }
-
+    tickets = tickets.filter((ticket) => ticket.name.get() == clientTicket.unit_id);
     for (const spinalTicket of tickets) {
       const spinalTicketNode = SpinalGraphService.getRealNode(
         spinalTicket.id.get()
@@ -516,20 +522,6 @@ export class SyncRunPull {
     }
   }
 
-  async getSpinalGeo(): Promise<SpinalContext<any>> {
-    const contexts = await this.graph.getChildren();
-    for (const context of contexts) {
-      if (context.info.id.get() === this.config.spatialContextId?.get()) {
-        // @ts-ignore
-        SpinalGraphService._addNode(context);
-        return context;
-      }
-    }
-    const context = await this.graph.getContext('spatial');
-    if (!context) throw new Error('Context Not found');
-    return context;
-  }
-
   async getNetworkContext(): Promise<SpinalNode<any>> {
     const contexts = await this.graph.getChildren();
     for (const context of contexts) {
@@ -553,26 +545,7 @@ export class SyncRunPull {
     });
   }
 
-  /**
-   * Initialize the context (fill the SpinalGraphService)
-   *
-   * @return {*}  {Promise<void>}
-   * @memberof SyncRunPull
-   */
-  async initContext(): Promise<void> {
-    const context = await this.getContext();
-    const spinalGeo = await this.getSpinalGeo();
-    await spinalGeo.findInContext(spinalGeo, (node) => {
-      // @ts-ignore
-      SpinalGraphService._addNode(node);
-      return false;
-    });
-    await context.findInContext(context, (node): false => {
-      // @ts-ignore
-      SpinalGraphService._addNode(node);
-      return false;
-    });
-  }
+
 
   dateToNumber(dateString: string | Date) {
     const dateObj = new Date(dateString);
@@ -909,7 +882,6 @@ export class SyncRunPull {
 
   async init(): Promise<void> {
     console.log('Initiating SyncRunPull');
-    await this.initContext();
     await this.mapElevatorsToId();
     console.log(this.mappingElevators);
     this.foundElevators = [];
