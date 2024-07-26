@@ -636,8 +636,7 @@ export class SyncRunPull {
       const uptimeEndpoint = await this.getUptimeEndpoint(devices[0]);
       const runCountsEndpoint = await this.getRunCountsEndpoint(devices[0]);
       const doorCyclesEndpoint = await this.getDoorCyclesEndpoint(devices[0]);
-
-      const startDate = moment().format('YYYY-MM-DD');
+      const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
       const endDate = moment().format('YYYY-MM-DD');
       try {
         const performanceData = await getPerformanceData(
@@ -650,10 +649,17 @@ export class SyncRunPull {
           uptimeEndpoint.info.id.get(),
           performanceData.uptime_30days
         );
+        if(!performanceData.performance || performanceData.performance.length == 0) continue;
+        let lastDate = 0;
+        let lastPerformance = null;
         for (const performance of performanceData.performance) {
           const runCountValue = parseInt(performance.run_counts);
           const doorCyclesValue = parseInt(performance.door_cycles);
           const newDate = this.dateToNumber(performance.date);
+          if ( newDate >lastDate){
+            lastDate = newDate;
+            lastPerformance = performance;
+          }
           await this.timeseriesService.insertFromEndpoint(
             runCountsEndpoint.info.id.get(),
             runCountValue,
@@ -665,6 +671,19 @@ export class SyncRunPull {
             newDate
           );
         }
+
+        
+        await this.nwService.setEndpointValue(
+          runCountsEndpoint.info.id.get(),
+          parseInt(lastPerformance.run_counts),
+          lastDate
+        );
+        await this.nwService.setEndpointValue(
+          doorCyclesEndpoint.info.id.get(),
+          parseInt(lastPerformance.door_cycles),
+          lastDate
+        );
+
       } catch (e) {
         console.log(e);
       }
