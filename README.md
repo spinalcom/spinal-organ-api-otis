@@ -1,9 +1,9 @@
 # spinal-organ-api-otis
-Simple BOS-Droople api connector to register telemetry data
+Simple BOS-Otis api connector to register tickets containing various elevator data
 
 ## Getting Started
 
-These instructions will guide you on how to install and make use of the spinal-organ-api-droople.
+These instructions will guide you on how to install and make use of the spinal-organ-api-otis.
 
 ### Prerequisites
 
@@ -19,11 +19,22 @@ DIGITALTWIN_PATH=                           # The path of the digital twin in th
 SPINAL_ORGAN_NAME=                          # The name of the organ
 SPINAL_CONFIG_PATH=                         # The path of the config file in the spinalhub exemple : /etc/Organs/otis
 
-NETWORK_CONTEXT_NAME=                       # The name of the network context to be created
-VIRTUAL_NETWORK_NAME=                       # The name of the virtual network to be created
-API_KEY=                                    # The API key for the Droople API
-PULL_INTERVAL=                              # Time (in ms) between each update of data
+TMP_TICKET_TARGET_ID=                       # The static id of the target node for the tickets
+TICKET_CONTEXT_ID=                          # The static id of the context node for the tickets
+SPATIAL_CONTEXT_ID=                         # The static id of the spatial context node for the tickets
+AVAILABILITY_PROCESS_NAME=                  # The name of the availability process
+MAINTENANCE_PROCESS_NAME=                   # The name of the maintenance process
+REPAIR_PROCESS_NAME=                        # The name of the repair process
+CUSTOMER_CALLBACK_PROCESS_NAME=             # The name of the customer callback process
 
+PULL_INTERVAL=                              # Time (in ms) between each update of tickets
+OTIS_AVAILABILITY_SUBSCRIPTION_KEY=         # The subscription key for the otis availability api
+OTIS_MAINTENANCE_SUBSCRIPTION_KEY=          # The subscription key for the otis maintenance api
+OTIS_REPAIR_SUBSCRIPTION_KEY=               # The subscription key for the otis repair api
+OTIS_CUSTOMER_CALLBACK_SUBSCRIPTION_KEY=    # The subscription key for the otis customer callback api
+CUSTOMER_ID=                                # The customer id for the otis api
+CONTRACT_NUMBER=                            # The contract number for the otis api
+COUNTRY_CODE=                               # The country code for the otis api
 
 ```
 
@@ -52,6 +63,6 @@ npm run start
 
 Or using [pm2](https://pm2.keymetrics.io/docs/usage/quick-start/)
 ```bash
-pm2 start index.js --name organ-droople
+pm2 start index.js --name organ-otis
 ```
 ```
