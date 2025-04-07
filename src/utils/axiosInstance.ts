@@ -35,7 +35,7 @@ function newInstance(baseURL: string) {
   axiosInstance = axios.create({
     baseURL,
     method: 'get',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.API_KEY },
   });
   manager = ConcurrencyManager(axiosInstance, MAX_CONCURRENT_REQUESTS);
 }
@@ -47,7 +47,7 @@ function detachInstance() {
   }
 }
 
-newInstance('https://developers-emea.otis.com');
+newInstance('https://api.droople.com');
 export default axiosInstance;
 export { axiosInstance };
 export { newInstance };

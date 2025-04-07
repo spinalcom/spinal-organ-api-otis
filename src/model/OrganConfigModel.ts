@@ -36,7 +36,6 @@ export default class OrganConfigModel extends Model {
   constructor() {
     super();
     this.add_attr('digitalTwinPath', '/__users__/admin/Digital twin VF');
-    this.add_attr('ticketContextId', '');
     this.add_attr('spatialContextId', '')
     this.add_attr('restart', false);
     this.add_attr('pullInterval', 5 * 60 * 1000);
@@ -51,7 +50,6 @@ export default class OrganConfigModel extends Model {
   initEnv() {
     if (process?.env.DIGITALTWIN_PATH)
       this.digitalTwinPath.set(process.env.DIGITALTWIN_PATH);
-    if (process?.env.TICKET_CONTEXT_ID) this.ticketContextId.set(process.env.TICKET_CONTEXT_ID);
     if (process?.env.SPATIAL_CONTEXT_ID)
       this.spatialContextId.set(process.env.SPATIAL_CONTEXT_ID);
     if (process?.env.PULL_INTERVAL)

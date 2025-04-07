@@ -29,294 +29,110 @@
 import { AxiosInstance } from 'axios';
 import { axiosInstance } from '../../utils/axiosInstance';
 
-/**
- * Exemple de réponse de l'api
- * @example
- * [{
-        "unit_id": "ABC12345",
-        "unit_display_name": "GAUCHE",
-        "building_id": "12345-1",
-        "building_name": "XYZ Towers",
-        "street_address": "ABC Lane 2",
-        "city": "XYZ",
-        "postal_code": "12345",
-        "call_datetime": "2021-01-04 17:08:58.0",
-        "caller_name": "Mr. Green",
-        "mechanic_dispatched": "2021-01-04 17:18:28.0",
-        "mechanic_arrived": "2021-01-04 17:37:39.0",
-        "mechanic_name": "JOHN DOE",
-        "closeout_datetime": "2021-01-04 17:37:39.0",
-        "customer_percept_text": "Appareil en panne",
-        "customer_service_request_id": "CB5422064234",
-        "resolution": "Vérification / NettoyageNon Concerné",
-        "Message": "Data Available"
-    },
-    {
-        "unit_id": "ABC12345",
-        "unit_display_name": "GAUCHE",
-        "building_id": "12345-1",
-        "building_name": "XYZ Towers",
-        "street_address": "ABC Lane 2",
-        "city": "XYZ",
-        "postal_code": "12345",
-        "call_datetime": "2021-01-06 17:08:58.0",
-        "caller_name": "Mary Sue",
-        "mechanic_dispatched": "2021-01-06 17:20:58.0",
-        "mechanic_arrived": "2021-01-06 17:37:39.0",
-        "mechanic_name": "JOHN DOE",
-        "closeout_datetime": "2021-01-06 17:37:39.0",
-        "customer_percept_text": "Défaut de la chaîne de sécurité",
-        "customer_service_request_id": "CB5422064234",
-        "resolution": "Remplacement de la pièce",
-        "Message": "Data Available"
-    }
-  ]
- * 
- *
- * @export
- * @interface ICustomerCallBackResponse
- */
-export interface ICustomerCallBackResponse {
-  unit_id: string;
-  unit_display_name: string;
-  building_id: string;
-  building_name: string;
-  street_address: string;
-  city: string;
-  postal_code: string;
-  call_datetime: Date;
-  caller_name: string;
-  mechanic_dispatched: string;
-  mechanic_arrived: string;
-  mechanic_name: string;
-  closeout_datetime: string;
-  customer_percept_text: string;
-  customer_service_request_id: string;
-  resolution: string;
-  Message: string;
+export interface IAssetResponse {
+  code: number;
+  message: string;
+  data: IAsset[];
 }
 
-/**
- * Exemple de réponse de l'api
- * @example
- * [{
-    "unit_id": "ABC12345",
-    "unit_display_name": "GAUCHE",
-    "building_id": "12345-1",
-    "building_name": "XYZ Towers",
-    "street_address": "ABC Lane 2",
-    "city": "XYZ",
-    "postal_code": "12345",
-    "mechanic_name": "JOHN DOE",
-    "stop_datetime": "2020-02-21T00:00:00.0000000+00:00",
-    "back_in_service_datetime": "2020-02-21T00:00:00.0000000+00:00",
-    "resolution": "ArrÃªt pour panne technique",
-    "Message": "This unit was never shutdown in last 12 months"
-}]
- *
- * @export
- * @interface IAvailabilityResponse
- */
-export interface IAvailabilityResponse {
-  unit_id: string;
-  unit_display_name: string;
-  building_id: string;
-  building_name: string;
-  street_address: string;
-  city: string;
-  postal_code: string;
-  mechanic_name: string;
-  stop_datetime: string;
-  back_in_service_datetime: string;
-  resolution: string;
-  Message: string;
+export interface IAsset {
+  id: number;
+  name: string;
+  model: string;
+  type: string;
+  space: string;
+  client: IClient;
+  devices: IDevice[];
+  notifications: null; // Assuming `null` is the only value. Adjust if there are other possible types.
+  devices_history: IDeviceHistory[];
+  description: string;
+  disabled: number;
+  location: string;
+  lng: number;
+  lat: number;
+  timezone: string;
+  params: Record<string, unknown>; // Assuming an object with unknown properties. Adjust accordingly.
+  initial_value: null; // Assuming `null` is the only value. Adjust if there are other possible types.
 }
 
-/**
- * Exemple de réponse de l'api
- * [{
-    "unit_id": "ABC12345",
-    "unit_display_name": "GAUCHE",
-    "building_id": "12345-1",
-    "building_name": "XYZ Towers",
-    "street_address": "ABC Lane 2",
-    "city": "XYZ",
-    "postal_code": "12345",
-    "completed_date": "2020-02-21T00:00:00.0000000+00:00",
-    "mechanic_name": "JOHN DOE",
-    "type_of_visit": "Visite annuelle de maintenance",
-    "resolution": "Visite annuelle de maintenance",
-    "Message": "Data Available"
-}]
- *
- * @export
- * @interface IMaintenanceResponse
- */
-export interface IMaintenanceResponse {
-  unit_id: string;
-  unit_display_name: string;
-  building_id: string;
-  building_name: string;
-  street_address: string;
-  city: string;
-  postal_code: string;
-  completed_date: string;
-  mechanic_name: string;
-  type_of_visit: string;
-  resolution: string;
-  Message: string;
+export interface IDeviceHistory {
+  id: number;
+  asset_id: number;
+  device_id: string;
+  from: string;
+  to: string | null;
 }
 
-/**
- * Exemple de réponse de l'api
- * [{
-    "unit_id": "ABC12345",
-    "unit_display_name": "GAUCHE",
-    "building_id": "12345-1",
-    "building_name": "XYZ Towers",
-    "street_address": "ABC Lane 2",
-    "city": "XYZ",
-    "postal_code": "12345",
-    "restart_datetime": "2020-02-21T00:00:00.0000000+00:00",
-    "mechanic_name": "JOHN DOE",
-    "repair_description": "Graissage / lubrification",
-    "Message": "Data Available"
-}]
- *
- * @export
- * @interface IRepairResponse
- */
-export interface IRepairResponse {
-  unit_id: string;
-  unit_display_name: string;
-  building_id: string;
-  building_name: string;
-  street_address: string;
-  city: string;
-  postal_code: string;
-  restart_datetime: string;
-  mechanic_name: string;
-  repair_description: string;
-  Message: string;
+export interface IDevice {
+  dev_id: string;
+  description: string;
+  sample_rate: number;
+  sample_rate_extra: number;
+  min_rest_between_cycles: number;
+  timezone: string;
+  communication: string;
+  model_id: string;
+  app_id: string;
+  disabled: number;
+  model: IModel;
+  client: IClient;
+  sensors: ISensor[];
+  last_telemetry: ILastTelemetry[];
 }
 
-export interface IElevatorPerformance {
-  date: Date;
-  run_counts: string;
-  door_cycles: string;
-}
-export interface IPerformanceResponse {
-  unit_id: string;
-  country_code: string;
-  country_unit: string;
-  unit_name: string;
-  unit_type: string;
-  uptime_30days: number;
-  performance: IElevatorPerformance[];
+interface IModel {
+  id: string;
+  name: string;
+  bexio_id: number;
 }
 
-export interface IStatusResponse {
-  unit_name: string;
-  lift_type: string;
-  unit_state: string;
-  floor: string;
-  moving_direction: string;
-  front_door_status: string;
-  rear_door_status: string;
-}
-
-export async function getAvailabilityData(): Promise<IAvailabilityResponse[]> {
-  const config = {
-    headers: {
-      'Ocp-Apim-Subscription-Key':
-        process.env.OTIS_AVAILABILITY_SUBSCRIPTION_KEY,
-    },
+interface IClient {
+  id: number;
+  name: string;
+  disabled: number;
+  parent: null; // Assuming `null` is the only value, otherwise use `any` or a specific type
+  params: {
+    currency: string;
+    awareness_screen_feature: boolean;
   };
-  return axiosInstance
-    .get(
-      `/elevatoravailability/api/latestavailability?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
-      config
-    )
-    .then((res) => res.data);
 }
 
-export async function getMaintenanceData(): Promise<IMaintenanceResponse[]> {
-  const config = {
-    headers: {
-      'Ocp-Apim-Subscription-Key':
-        process.env.OTIS_MAINTENANCE_SUBSCRIPTION_KEY,
-    },
+interface ISensor {
+  id: number;
+  sensor_id: number;
+  sensor: {
+    id: number;
+    name: string;
+    bexio_id: number;
+    data_types: string[];
+    temperature_probe: string;
+    step_rate: number;
+    frequency_factor_a: null; // Assuming `null` is the only value, otherwise use `number` or a specific type
+    frequency_factor_b: null; // Assuming `null` is the only value, otherwise use `number` or a specific type
   };
-  return axiosInstance
-    .get(
-      `/elevatormaintenance/api/latestmaintenanceinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
-      config
-    )
-    .then((res) => res.data);
+  device_id: string;
+  date_added: string;
+  date_removed: null; // Assuming `null` is the only value, otherwise use `string` or a specific type
+  stream_direction: null; // Assuming `null` is the only value, otherwise use `string` or a specific type
+  stream_temperature: null; // Assuming `null` is the only value, otherwise use `number` or a specific type
+  sensor_address: null; // Assuming `null` is the only value, otherwise use `string` or a specific type
+  channel: number;
 }
 
-export async function getRepairData(): Promise<IRepairResponse[]> {
-  const config = {
-    headers: {
-      'Ocp-Apim-Subscription-Key': process.env.OTIS_REPAIR_SUBSCRIPTION_KEY,
-    },
-  };
-  return axiosInstance
-    .get(
-      `/elevatorrepair/api/latestrepairinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
-      config
-    )
-    .then((res) => res.data);
+export interface ILastTelemetry {
+  id: number;
+  utc_time: string;
+  dev_id: string;
+  data_type: string;
+  source: string;
+  value: null; // Assuming `null` is the only value, otherwise use a specific type
+  delta: null; // Assuming `null` is the only value, otherwise use a specific type
+  sensor_type: null; // Assuming `null` is the only value, otherwise use a specific type
+  sensor_address: string;
+  channel: number;
+  unit: null; // Assuming `null` is the only value, otherwise use `string` or a specific type
 }
 
-export async function getCustomerCallBackData(): Promise<
-  ICustomerCallBackResponse[]
-> {
-  const config = {
-    headers: {
-      'Ocp-Apim-Subscription-Key':
-        process.env.OTIS_CUSTOMER_CALLBACK_SUBSCRIPTION_KEY,
-    },
-  };
-  return axiosInstance
-    .get(
-      `/callback/api/latestcallbackinfo?country_code=${process.env.COUNTRY_CODE}&customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
-      config
-    )
-    .then((res) => res.data);
-}
-
-export async function getPerformanceData(
-  elevatorId: string,
-  startDate: string,
-  endDate: string
-): Promise<IPerformanceResponse> {
-  const config = {
-    headers: {
-      'Ocp-Apim-Subscription-Key':
-        process.env.OTIS_PERFORMANCE_SUBSCRIPTION_KEY,
-    },
-  };
-  return axiosInstance
-    .get(
-      `/elevatorperformance/api/elevators/${elevatorId}/${process.env.COUNTRY_CODE}/v2/elevatorperformance?customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}&start_date=${startDate}&end_date=${endDate}`,
-      config
-    )
-    .then((res) => res.data);
-}
-
-export async function getStatusData(
-  elevatorId: string
-): Promise<IStatusResponse> {
-  const config = {
-    headers: {
-      'Ocp-Apim-Subscription-Key': process.env.OTIS_STATUS_SUBSCRIPTION_KEY,
-    },
-  };
-  return axiosInstance
-    .get(
-      `/elevatorstatus/api/elevators/${elevatorId}/${process.env.COUNTRY_CODE}/v1/elevatorstatus?customer_id=${process.env.CUSTOMER_ID}&contract_no=${process.env.CONTRACT_NUMBER}`,
-      config
-    )
-    .then((res) => res.data);
+export async function getAssets(): Promise<IAssetResponse> {
+  return axiosInstance.get(`/assets`).then((res) => res.data);
 }

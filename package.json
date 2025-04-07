@@ -1,6 +1,6 @@
 {
-  "name": "spinal-organ-api-otis",
-  "version": "1.0.2",
+  "name": "spinal-organ-api-droople",
+  "version": "1.0.0",
   "description": "",
   "main": "build/index.js",
   "types": "build/index.ts.d",
@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsc -w & nodemon index.js",
     "debug": "ts-node ./src/index.js",
-    "build": "tsc",
+    "build": "rm -rf build && tsc",
     "start": "node index.js"
   },
   "dependencies": {
@@ -20,7 +20,6 @@
     "getmac": "^5.20.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.33",
-    "spinal-core-connectorjs": "git+https://github.com/spinalcom/spinal-core-connectorjs.git",
     "spinal-core-connectorjs_type": "git+https://github.com/spinalcom/spinal-core-connectorjs_type.git",
     "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git",
     "spinal-env-viewer-plugin-documentation-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-documentation-service.git",
